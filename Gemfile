@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '3.0.0'
+ruby '3.3.0'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem 'rails', '~> 7.1.2'
@@ -72,8 +72,8 @@ end
 
 gem 'levenshtein-ffi', require: 'levenshtein'
 
-gem "tailwindcss-rails", "~> 2.2"
+gem 'tailwindcss-rails', '~> 2.2'
 
-gem "dockerfile-rails", ">= 1.6", :group => :development
+gem 'dockerfile-rails', '>= 1.6', group: :development
 
-gem "pg", "~> 1.5.4"
+gem 'pg', '~> 1.5.4'
