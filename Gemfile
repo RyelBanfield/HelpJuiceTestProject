@@ -73,3 +73,7 @@ end
 gem 'levenshtein-ffi', require: 'levenshtein'
 
 gem "tailwindcss-rails", "~> 2.2"
+
+gem "dockerfile-rails", ">= 1.6", :group => :development
+
+gem "pg", "~> 1.5.4"
