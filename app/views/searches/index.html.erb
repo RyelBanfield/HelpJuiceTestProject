@@ -1,90 +1,104 @@
-<h1>Real-time Search Analytics</h1>
-<div id="search-box">
-	<input type="text" id="search-input" placeholder="Type your search...">
-	<div id="suggestions"></div>
+<div class="p-6 pt-9 flex flex-col flex-grow">
+	<h1 class="text-3xl font-bold mb-8 text-neutral-900 text-center">Real-time Search Analytics</h1>
+	<div id="search-box" class="bg-white p-4 rounded-md shadow-md mb-8">
+		<input type="text" id="search-input"
+                class="w-full p-3 border border-gray-300 focus:outline-none focus:border-blue-500"
+                placeholder="Type your search...">
+		<div id="suggestions" class="mt-2"></div>
+	</div>
+	<h2 class="text-2xl font-bold mb-2">Your most recent searches</h2>
+	<ul id="search-terms" class="list-disc pl-6 mb-6 flex flex-col flex-grow">
+		<% if @your_most_recent_terms.empty? %>
+			<p class="italic text-gray-600">You have no searches yet</p>
+		<% else %>
+			<% @your_most_recent_terms.each do |search_term| %>
+				<li><%= "#{search_term.term} (#{search_term.count} search#{'es' if search_term.count > 1})" %></li>
+			<% end %>
+		<% end %>
+	</ul>
+	<h2 class="text-2xl font-bold mb-2">Your top searches</h2>
+	<ul id="search-terms" class="list-disc pl-6 mb-6 flex flex-col flex-grow">
+		<% if @your_most_frequent_terms.empty? %>
+			<p class="italic text-gray-600">You have no top searches yet</p>
+		<% else %>
+			<% @your_most_frequent_terms.each do |search_term| %>
+				<li><%= "#{search_term.term} (#{search_term.count} search#{'es' if search_term.count > 1})" %></li>
+			<% end %>
+		<% end %>
+	</ul>
+	<h2 class="text-2xl font-bold mb-2">Top searches of all users</h2>
+	<ul id="search-terms" class="list-disc pl-6 mb-6 flex flex-col flex-grow">
+		<% if @most_frequent_terms.empty? %>
+			<p class="italic text-gray-600">No top searches yet</p>
+		<% else %>
+			<% @most_frequent_terms.each do |search_term| %>
+				<li><%= "#{search_term.term} (#{search_term.count} search#{'es' if search_term.count > 1})" %></li>
+			<% end %>
+		<% end %>
+	</ul>
 </div>
-<h2>Your most recent searchs</h2>
-<ul id="search-terms">
-	<% if @your_most_recent_terms.empty? %>
-		<p>You have no searches yet</p>
-	<% else %>
-		<% @your_most_recent_terms.each do |search_term| %>
-			<li><%= "#{search_term.term} (#{search_term.count})" %></li>
-		<% end %>
-	<% end %>
-</ul>
-<h2>Your top searches</h2>
-<ul id="search-terms">
-	<% if @your_most_frequent_terms.empty? %>
-		<p>You have no top searches yet</p>
-	<% else %>
-		<% @your_most_frequent_terms.each do |search_term| %>
-			<li><%= "#{search_term.term} (#{search_term.count})" %></li>
-		<% end %>
-	<% end %>
-</ul>
-<h2>Top searches of all users</h2>
-<ul id="search-terms">
-	<% if @most_frequent_terms.empty? %>
-		<p>No top searches yet</p>
-	<% else %>
-		<% @most_frequent_terms.each do |search_term| %>
-			<li><%= "#{search_term.term} (#{search_term.count})" %></li>
-		<% end %>
-	<% end %>
-</ul>
 <script>
+	// Real-time search box functionality
 	document.addEventListener('DOMContentLoaded', function () {
 	  const searchInput = document.getElementById('search-input');
 	  const suggestionsContainer = document.getElementById('suggestions');
 	  let debounceTimeout;
 
+	  // Event listener for user input in the search box
 	  searchInput.addEventListener('input', function () {
+	    // Function to display search suggestions
 	    function displaySuggestions(suggestions) {
-	        suggestionsContainer.innerHTML = '';
+	      // Clear existing suggestions
+	      suggestionsContainer.innerHTML = '';
 
-	        if (suggestions.length === 0) {
-	          const noSuggestionsMessage = document.createElement('div');
-	          noSuggestionsMessage.textContent = 'No similar queries found.';
-	          suggestionsContainer.appendChild(noSuggestionsMessage);
-	        } else {
-	          suggestions.slice(0, 5).forEach(suggestion => {
-	            const suggestionElement = document.createElement('div');
-	            suggestionElement.textContent = `${suggestion.term} (${suggestion.count})`;
-	            suggestionsContainer.appendChild(suggestionElement);
-	          });
-	        }
-	      }
-
-	      function fetchSuggestions(term) {
-	        fetch(`/searches/suggestions?term=${term}`)
-	          .then(response => response.json())
-	          .then(data => displaySuggestions(data.suggestions));
-	      }
-
-	      function logSearch(term) {
-	        fetch(`/searches`, {
-	          method: 'POST',
-	          headers: {
-	            'Content-Type': 'application/json',
-	            'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
-	          },
-	          body: JSON.stringify({ term: term })
+	      // Display message if no suggestions found
+	      if (suggestions.length === 0) {
+	        const noSuggestionsMessage = document.createElement('div');
+	        noSuggestionsMessage.textContent = 'No similar queries found.';
+	        suggestionsContainer.appendChild(noSuggestionsMessage);
+	      } else {
+	        // Display up to 5 suggestions
+	        suggestions.slice(0, 5).forEach(suggestion => {
+	          const suggestionElement = document.createElement('div');
+	          suggestionElement.textContent = `${suggestion.term} (${suggestion.count})`;
+	          suggestionsContainer.appendChild(suggestionElement);
 	        });
 	      }
+	    }
 
+	    // Function to fetch search suggestions from the server
+	    function fetchSuggestions(term) {
+	      fetch(`/searches/suggestions?term=${term}`)
+	        .then(response => response.json())
+	        .then(data => displaySuggestions(data.suggestions));
+	    }
+
+	    // Function to log search queries
+	    function logSearch(term) {
+	      fetch(`/searches`, {
+	        method: 'POST',
+	        headers: {
+	          'Content-Type': 'application/json',
+	          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+	        },
+	        body: JSON.stringify({ term: term })
+	      });
+	    }
+
+	    // Process the user's input
 	    const term = searchInput.value.trim();
-
 	    clearTimeout(debounceTimeout);
 
+	    // Use a debounce to avoid making too many requests in a short period
 	    debounceTimeout = setTimeout(function () {
 	      if (term !== '') {
+	        // Fetch suggestions and log the search
 	        fetchSuggestions(term);
 	        logSearch(term);
 	      } else {
 	        suggestionsContainer.innerHTML = '';
 	      }
-	    }, 250);
+	    }, 500);
 	  });
 	});
 </script>
